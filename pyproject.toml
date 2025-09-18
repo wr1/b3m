@@ -1,0 +1,9 @@
+[project]
+name = "b3m"
+version = "0.1.0"
+dependencies = [
+    "treeparse",
+]
+
+[project.scripts]
+b3m = "b3m.cli:main"
