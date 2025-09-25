@@ -3,7 +3,16 @@ name = "b3m"
 version = "0.1.0"
 dependencies = [
     "treeparse",
+    "statesman",
+    "b3_geo",
+    "b3_msh",
+    "b3_pln",
 ]
 
 [project.scripts]
 b3m = "b3m.cli:main"
+
+[tool.uv.sources]
+b3_geo = { path = "../b3_geo" }
+b3_msh = { path = "../b3_msh" }
+b3_pln = { path = "../b3_pln" }

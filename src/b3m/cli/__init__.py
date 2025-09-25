@@ -8,13 +8,16 @@ sys.path.append(str(Path(__file__).parent.parent.parent / "b3_pln" / "src"))
 
 from treeparse import cli
 from b3_geo.cli import app as geo_app
-from b3_msh.cli import app as msh_app
+from b3_msh.cli.mesh import app as msh_app
 from b3_pln.cli import app as pln_app
 
-# Set names for subgroups
+# Set names and sort keys for subgroups
 geo_app.name = "geo"
+geo_app.sort_key = 1
 msh_app.name = "msh"
+msh_app.sort_key = 2
 pln_app.name = "pln"
+pln_app.sort_key = 0
 
 super_app = cli(
     name="b3m",
@@ -23,7 +26,6 @@ super_app = cli(
     show_types=True,
     show_defaults=True,
     line_connect=True,
-    theme="monochrome",
     subgroups=[geo_app, msh_app, pln_app],
 )
 

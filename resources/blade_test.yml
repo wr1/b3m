@@ -1,10 +1,9 @@
-general:
-  workdir: temp_blade
+workdir: temp_blade
 
 geometry:
   planform:
     npchord: 200
-    npspan: 100
+    npspan: 200
     pre_rotation: -90
     # offset in prebend direction, negative is upwind
     dx: [[0.0, 0.0], [0.2, 0.0], [0.4, 0.0], [1.0, -5.0]]
@@ -44,12 +43,21 @@ mesh:
       orientation: [0.02, 1, 0]
       z_range: [-100, -10]
       element_size: 0.10
+      mesh: false
     - name: web1
       type: plane
-      origin: [0, 0.5, 0]
+      origin: [0, 0.2, 0]
       orientation: [0.02, 1, 0]
       z_range: [-110, -30]
       element_size: 0.10
+      mesh: true
+    - name: web2
+      type: plane
+      origin: [0, -0.2, 0]
+      orientation: [0.02, 1, 0]
+      z_range: [-100, -10]
+      element_size: 0.10
+      mesh: true
 
   spanwise:
     
@@ -59,6 +67,6 @@ mesh:
       element_size: 0.10
     panels:
       - id: 0
-        element_size: 0.04
+        element_size: 0.1
       - id: 1
         element_size: 0.10
