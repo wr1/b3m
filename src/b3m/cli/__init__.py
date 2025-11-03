@@ -1,3 +1,5 @@
+"""CLI module for b3m."""
+
 import sys
 from pathlib import Path
 
@@ -9,15 +11,15 @@ sys.path.append(str(Path(__file__).parent.parent.parent / "b3_drp" / "src"))
 from treeparse import cli
 from b3_geo.cli import app as geo_app
 from b3_msh.cli.cli import app as msh_app
-from b3_drp.cli import app as drp_app
+from b3_drp.cli.cli import app as drp_app
 
 # Set names and sort keys for subgroups
 geo_app.name = "geo"
-geo_app.sort_key = 1
+geo_app.sort_key = 0
 msh_app.name = "msh"
-msh_app.sort_key = 2
+msh_app.sort_key = 1
 drp_app.name = "drp"
-drp_app.sort_key = 0
+drp_app.sort_key = 2
 
 super_app = cli(
     name="b3m",
