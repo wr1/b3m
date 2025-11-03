@@ -1,30 +1,36 @@
 #!/bin/bash
 
-# Modified files
-FILES=(
+# List of files added/modified
+files=(
     "src/b3m/cli/__init__.py"
+    "examples/build_blade.py"
     "admin.sh"
 )
 
 # Run ruff format
-echo "Running ruff format..."
 ruff format
 
-# Run ruff check --fix and pipe to out.txt
-echo "Running ruff check --fix..."
+# Run ruff check and fix, pipe to out.txt
 ruff check --fix > out.txt
 
 # Run pytest and append to out.txt
-echo "Running pytest..."
 uv run pytest -v >> out.txt
 
 # Commit each file
-echo "Committing files..."
-for file in "${FILES[@]}"; do
-    if [ "$file" == "admin.sh" ]; then
-        git add "$file"
-        git commit "$file" -m "Add admin.sh script for automated checks and commits"
+for file in "${files[@]}"; do
+    if [ ! -f "$file" ]; then
+        echo "File $file does not exist, skipping."
+        continue
+    fi
+    # Check if new or modified
+    if git ls-files --error-unmatch "$file" > /dev/null 2>&1; then
+        # File is tracked, check if modified
+        if ! git diff --quiet "$file"; then
+            git commit "$file" -m "summary of edits for $file"
+        fi
     else
-        git commit "$file" -m "Fix import path for b3_msh.cli.cli app in CLI"
+        # New file
+        git add "$file"
+        git commit "$file" -m "summary of edits for $file"
     fi
 done
