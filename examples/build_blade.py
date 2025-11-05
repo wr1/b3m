@@ -1,55 +1,53 @@
-import sys
+import argparse
+import logging
+import os
+import shutil
+import yaml
 from pathlib import Path
-
-# Add paths to sub-project source directories
-sys.path.append(str(Path(__file__).parent.parent / "b3_geo" / "src"))
-sys.path.append(str(Path(__file__).parent.parent / "b3_msh" / "src"))
-sys.path.append(str(Path(__file__).parent.parent / "b3_drp" / "src"))
-
-from b3_geo.api.plan import process_plan
+from rich.logging import RichHandler
 from b3_geo.api.af_step import AFStep
 from b3_geo.api.loft_step import LoftStep
-from b3_msh.core.mesh import MeshStep
+from b3_msh.statesman.statesman_step import B3MshStep as MeshStep
+from b3_drp import DrapeStep
+from b3_geo.api.planform import process_planform as process_plan
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    handlers=[RichHandler(show_time=False)],
+)
+logger = logging.getLogger(__name__)
 
 
-def build_blade(config_path: str):
-    """Run the full blade building workflow: planform -> geometry -> mesh."""
-    print(f"Starting blade build with config: {config_path}")
-
-    # Step 1: Process planform
-    print("Processing planform...")
-    process_plan(config_path)
-
-    # Step 2: Process airfoils
-    print("Processing airfoils...")
+def build_blade(config_path, force=False):
+    logger.info(f"Starting blade build with config: {config_path}")
+    # Load config to get workdir
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+    config_dir = Path(config_path).parent
+    workdir = config_dir / config["workdir"]
+    if force and workdir.exists():
+        logger.info(f"Force overwrite: removing existing workdir {workdir}")
+        shutil.rmtree(workdir)
+    logger.info("Processing airfoils...")
     af_step = AFStep(config_path)
     af_step.run()
-
-    # Step 3: Process loft
-    print("Processing loft...")
+    logger.info("Processing loft...")
     loft_step = LoftStep(config_path)
     loft_step.run()
-
-    # Step 4: Generate mesh
-    print("Generating mesh...")
+    logger.info("Generating mesh...")
     mesh_step = MeshStep(config_path)
     mesh_step.run()
-
-    print("Blade build completed.")
+    logger.info("Assigning plies...")
+    drape_step = DrapeStep(config_path)
+    drape_step.run()
+    logger.info("Blade build completed.")
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Demo script to build a blade using b3m workflow."
-    )
-    parser.add_argument(
-        "-c",
-        "--config",
-        required=True,
-        help="Path to the YAML config file",
-    )
-
+    parser = argparse.ArgumentParser(description="Build blade from config.")
+    parser.add_argument("-c", "--config", type=str, required=True, help="Path to config file")
+    parser.add_argument("--force", action="store_true", help="Force overwrite by cleaning the workdir first")
     args = parser.parse_args()
-    build_blade(args.config)
+    config_path = os.path.abspath(args.config)
+    build_blade(config_path, force=args.force)

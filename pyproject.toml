@@ -6,13 +6,23 @@ dependencies = [
     "statesman",
     "b3_geo",
     "b3_msh",
-    "b3_pln",
+    "b3_drp",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "pytest",
+    "pytest-cov",
 ]
 
 [project.scripts]
 b3m = "b3m.cli:main"
 
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing"
+
 [tool.uv.sources]
 b3_geo = { path = "../b3_geo" }
 b3_msh = { path = "../b3_msh" }
-b3_pln = { path = "../b3_pln" }
+b3_drp = { path = "../b3_drp" }
