@@ -15,7 +15,7 @@ b3m is a command-line interface (CLI) tool for blade modeling, integrating funct
 Ensure you have Python 3.8+ and `uv` installed. Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/yourusername/b3m.git
+git clone https://github.com/wr1/b3m.git
 cd b3m
 uv sync --dev
 ```
@@ -65,4 +65,4 @@ To contribute:
 
 ## License
 
-[Specify your license here, e.g., MIT]
+MIT
