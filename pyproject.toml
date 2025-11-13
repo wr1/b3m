@@ -24,10 +24,10 @@ addopts = "--cov=src --cov-report=term-missing"
 
 [tool.uv.sources]
 # For local development, use path (uncomment and comment git lines):
-b3_geo = { path = "../b3_geo" }
-b3_msh = { path = "../b3_msh" }
-b3_drp = { path = "../b3_drp" }
-# For production or CI, use git with SSH (requires SSH key setup for github):
-# b3_geo = { git = "git+ssh://git@github.com/wr1/b3_geo.git" }
-# b3_msh = { git = "git+ssh://git@github.com/wr1/b3_msh.git" }
-# b3_drp = { git = "git+ssh://git@github.com/wr1/b3_drp.git" }
+# b3_geo = { path = "../b3_geo" }
+# b3_msh = { path = "../b3_msh" }
+# b3_drp = { path = "../b3_drp" }
+# For production or CI, use git over HTTPS:
+b3_geo = { git = "https://github.com/wr1/b3_geo.git" }
+b3_msh = { git = "https://github.com/wr1/b3_msh.git" }
+b3_drp = { git = "https://github.com/wr1/b3_drp.git" }
