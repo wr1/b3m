@@ -8,6 +8,7 @@ dependencies = [
     "b3_msh",
     "b3_drp",
     "b3_2d",
+    "cgfoil",
     "pydantic",
     "pyyaml",
 ]
@@ -29,11 +30,13 @@ b3_geo = { path = "../b3_geo" }
 b3_msh = { path = "../b3_msh" }
 b3_drp = { path = "../b3_drp" }
 b3_2d = { path = "../b3_2d" }
+cgfoil = { path = "../cgfoil" }
 # For production or CI, use git over HTTPS:
 # b3_geo = { git = "https://github.com/wr1/b3_geo.git" }
 # b3_msh = { git = "https://github.com/wr1/b3_msh.git" }
 # b3_drp = { git = "https://github.com/wr1/b3_drp.git" }
 # b3_2d = { git = "https://github.com/wr1/b3_2d.git" }
+# cgfoil = { git = "https://github.com/wr1/cgfoil.git" }
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report=term-missing"
