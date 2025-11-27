@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, RootModel
 from typing import Dict, List, Any, Optional
 import yaml
 
@@ -13,8 +13,8 @@ class AirfoilItem(BaseModel):
     thickness: float
 
 
-class Airfoils(BaseModel):
-    __root__: List[AirfoilItem]
+class Airfoils(RootModel[List[AirfoilItem]]):
+    pass
 
 
 class Mesh(BaseModel):
