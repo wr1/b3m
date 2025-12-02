@@ -1,7 +1,0 @@
-Run uv sync --dev
-warning: Skipping installation of entry points (`project.scripts`) because this project is not packaged; to install entry points, set `tool.uv.package = true` or define a `build-system`
-Using CPython 3.11.14 interpreter at: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python
-Creating virtual environment at: .venv
-warning: No `requires-python` value found in the workspace. Defaulting to `>=3.11`.
-error: Distribution not found at: file:///home/runner/work/b3m/b3_geo
-Error: Process completed with exit code 2.
