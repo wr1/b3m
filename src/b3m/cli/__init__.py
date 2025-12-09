@@ -9,11 +9,12 @@ sys.path.append(str(Path(__file__).parent.parent.parent / "b3_msh" / "src"))
 sys.path.append(str(Path(__file__).parent.parent.parent / "b3_drp" / "src"))
 sys.path.append(str(Path(__file__).parent.parent.parent / "b3_2d" / "src"))
 
-from treeparse import cli
+from treeparse import cli, group
 from b3_geo.cli import app as geo_app
 from b3_msh.cli.cli import app as msh_app
 from b3_drp.cli.cli import app as drp_app
 from b3_2d.cli.cli import app as b3_2d_app
+from .build import app as build_app
 
 # Set names and sort keys for subgroups
 geo_app.name = "geo"
@@ -25,6 +26,15 @@ drp_app.sort_key = 2
 b3_2d_app.name = "2d"
 b3_2d_app.sort_key = 3
 
+modules_group = group(
+    name="modules",
+    help="Sub-project modules.",
+    subgroups=[geo_app, msh_app, drp_app, b3_2d_app],
+    sort_key=0,
+)
+
+build_app.sort_key = 1
+
 super_app = cli(
     name="b3m",
     help="b3m CLI for blade modeling.",
@@ -32,7 +42,7 @@ super_app = cli(
     show_types=True,
     show_defaults=True,
     line_connect=True,
-    subgroups=[geo_app, msh_app, drp_app, b3_2d_app],
+    subgroups=[build_app],
 )
 
 

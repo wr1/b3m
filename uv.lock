@@ -13,32 +13,32 @@ wheels = [
 
 [[package]]
 name = "b3-2d"
-version = "0.1.0"
+version = "0.1.1"
 source = { directory = "../b3_2d" }
 dependencies = [
     { name = "cgfoil" },
-    { name = "matplotlib" },
     { name = "numpy" },
-    { name = "pandas" },
     { name = "pydantic" },
     { name = "pyvista" },
     { name = "rich" },
-    { name = "scipy" },
+    { name = "statesman" },
     { name = "treeparse" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cgfoil" },
-    { name = "matplotlib" },
     { name = "numpy" },
-    { name = "pandas" },
     { name = "pydantic" },
+    { name = "pytest", marker = "extra == 'tests'" },
+    { name = "pytest-cov", marker = "extra == 'tests'" },
     { name = "pyvista" },
     { name = "rich" },
-    { name = "scipy" },
+    { name = "ruff", marker = "extra == 'tests'" },
+    { name = "statesman" },
     { name = "treeparse" },
 ]
+provides-extras = ["tests"]
 
 [[package]]
 name = "b3-drp"
@@ -52,6 +52,7 @@ dependencies = [
     { name = "pyvista" },
     { name = "pyyaml" },
     { name = "rich" },
+    { name = "statesman" },
     { name = "treeparse" },
 ]
 
@@ -64,7 +65,16 @@ requires-dist = [
     { name = "pyvista" },
     { name = "pyyaml" },
     { name = "rich" },
+    { name = "statesman", git = "https://github.com/wr1/statesman" },
     { name = "treeparse" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "pytest" },
+    { name = "ruff" },
 ]
 
 [[package]]
@@ -75,8 +85,6 @@ dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "pydantic" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
     { name = "pyvista" },
     { name = "pyyaml" },
     { name = "rich" },
@@ -89,15 +97,21 @@ dependencies = [
 requires-dist = [
     { name = "matplotlib" },
     { name = "numpy" },
-    { name = "pydantic", specifier = ">=2.0,<3.0" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
+    { name = "pydantic" },
     { name = "pyvista" },
     { name = "pyyaml" },
     { name = "rich" },
     { name = "scipy" },
-    { name = "statesman", git = "https://github.com/wr1/statesman.git" },
+    { name = "statesman" },
     { name = "treeparse" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mkdocs" },
+    { name = "mkdocs-material" },
+    { name = "pytest" },
+    { name = "ruff" },
 ]
 
 [[package]]
@@ -1585,7 +1599,7 @@ wheels = [
 [[package]]
 name = "statesman"
 version = "0.1.1"
-source = { git = "https://github.com/wr1/statesman.git#ca5142940ac37b7792a991265503504d3cc9f7f5" }
+source = { git = "https://github.com/wr1/statesman#ca5142940ac37b7792a991265503504d3cc9f7f5" }
 dependencies = [
     { name = "pydantic" },
     { name = "pytest-cov" },
