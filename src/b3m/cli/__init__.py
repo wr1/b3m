@@ -3,37 +3,10 @@
 import sys
 from pathlib import Path
 
-# Add paths to sub-project source directories
-sys.path.append(str(Path(__file__).parent.parent.parent / "b3_geo" / "src"))
-sys.path.append(str(Path(__file__).parent.parent.parent / "b3_msh" / "src"))
-sys.path.append(str(Path(__file__).parent.parent.parent / "b3_drp" / "src"))
-sys.path.append(str(Path(__file__).parent.parent.parent / "b3_2d" / "src"))
+from treeparse import cli
+from .build import build_group as build_app
 
-from treeparse import cli, group
-from b3_geo.cli import app as geo_app
-from b3_msh.cli.cli import app as msh_app
-from b3_drp.cli.cli import app as drp_app
-from b3_2d.cli.cli import app as b3_2d_app
-from .build import app as build_app
-
-# Set names and sort keys for subgroups
-geo_app.name = "geo"
-geo_app.sort_key = 0
-msh_app.name = "msh"
-msh_app.sort_key = 1
-drp_app.name = "drp"
-drp_app.sort_key = 2
-b3_2d_app.name = "2d"
-b3_2d_app.sort_key = 3
-
-modules_group = group(
-    name="modules",
-    help="Sub-project modules.",
-    subgroups=[geo_app, msh_app, drp_app, b3_2d_app],
-    sort_key=0,
-)
-
-build_app.sort_key = 1
+build_app.sort_key = 0
 
 super_app = cli(
     name="b3m",
