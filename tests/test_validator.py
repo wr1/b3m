@@ -1,6 +1,5 @@
 import pytest
 import yaml
-from pathlib import Path
 from b3m.validator import validate_config, B3mConfig
 
 
@@ -20,24 +19,17 @@ def test_valid_config(tmp_path):
                 "npspan": 100,
             }
         },
-        "airfoils": [
-            {"path": "naca0018.dat", "name": "naca0018", "thickness": 0.18}
-        ],
+        "airfoils": [{"path": "naca0018.dat", "name": "naca0018", "thickness": 0.18}],
         "mesh": {
             "z": [{"type": "linspace", "values": [0.0, 1.0], "num": 10}],
-            "chordwise": {
-                "default": {"n_elem": 100},
-                "panels": []
-            }
+            "chordwise": {"default": {"n_elem": 100}, "panels": []},
         },
-        "structure": {
-            "webs": []
-        },
+        "structure": {"webs": []},
     }
     config_file = tmp_path / "config.yaml"
-    with open(config_file, 'w') as f:
+    with open(config_file, "w") as f:
         yaml.dump(config_data, f)
-    
+
     config = validate_config(str(config_file))
     assert isinstance(config, B3mConfig)
     assert config.workdir == "test_workdir"
@@ -53,9 +45,9 @@ def test_invalid_config_missing_workdir(tmp_path):
         "structure": {},
     }
     config_file = tmp_path / "config.yaml"
-    with open(config_file, 'w') as f:
+    with open(config_file, "w") as f:
         yaml.dump(config_data, f)
-    
+
     with pytest.raises(Exception):
         validate_config(str(config_file))
 
@@ -70,8 +62,8 @@ def test_invalid_config_bad_airfoil(tmp_path):
         "structure": {},
     }
     config_file = tmp_path / "config.yaml"
-    with open(config_file, 'w') as f:
+    with open(config_file, "w") as f:
         yaml.dump(config_data, f)
-    
+
     with pytest.raises(Exception):
         validate_config(str(config_file))

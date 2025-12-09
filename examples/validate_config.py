@@ -14,7 +14,7 @@ def main():
     if len(sys.argv) != 2:
         print("Usage: python validate_config.py <config.yaml>")
         sys.exit(1)
-    
+
     config_path = sys.argv[1]
     try:
         config = validate_config(config_path)
@@ -24,6 +24,7 @@ def main():
     except Exception as e:
         print(f"Validation failed: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

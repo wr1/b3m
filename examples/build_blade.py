@@ -10,7 +10,6 @@ from b3_geo.api.loft_step import LoftStep
 from b3_msh.statesman.statesman_step import B3MshStep as MeshStep
 from b3_drp import DrapeStep
 from b3_2d.statesman.b3_2d_step import B32dStep
-from b3_geo.api.planform import process_planform as process_plan
 
 logging.basicConfig(
     level=logging.INFO,

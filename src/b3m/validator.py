@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ValidationError, RootModel
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 import yaml
 
 
@@ -28,6 +28,7 @@ class Structure(BaseModel):
 
 class B3mConfig(BaseModel):
     """Top-level config for b3m YAML validation."""
+
     workdir: str
     geometry: Geometry
     airfoils: Airfoils
@@ -38,7 +39,7 @@ class B3mConfig(BaseModel):
 
 def validate_config(config_path: str) -> B3mConfig:
     """Load and validate the YAML config."""
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         data = yaml.safe_load(f)
     try:
         config = B3mConfig(**data)

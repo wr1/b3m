@@ -3,10 +3,9 @@
 import logging
 from pathlib import Path
 from rich.logging import RichHandler
-from treeparse import cli, command, argument, option, group
+from treeparse import command, argument, option, group
 import yaml
 import shutil
-import os
 from b3_geo.api.af_step import AFStep
 from b3_geo.api.loft_step import LoftStep
 from b3_msh.core.mesh_step import B3MshStep as MeshStep
