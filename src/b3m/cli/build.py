@@ -10,7 +10,7 @@ from b3_geo.api.af_step import AFStep
 from b3_geo.api.loft_step import LoftStep
 from b3_msh.core.mesh_step import B3MshStep as MeshStep
 from b3_drp import DrapeStep
-from b3_2d.statesman.b3_2d_step import B32dStep
+from b3_2d.state import B32dStep, B32dAnbaStep
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,6 +55,13 @@ def process_2d_meshing(config: str, force: bool = False) -> None:
     b3_2d_step.run(force=force)
 
 
+def process_anba(config: str, force: bool = False) -> None:
+    """Process ANBA from config."""
+    logger.info("Processing ANBA...")
+    b3_2d_anba_step = B32dAnbaStep(config)
+    b3_2d_anba_step.run(force=force)
+
+
 def build_blade(config: str, force: bool = False) -> None:
     """Build blade from config."""
     logger.info(f"Starting blade build with config: {config}")
@@ -71,6 +78,7 @@ def build_blade(config: str, force: bool = False) -> None:
     generate_mesh(config, force)
     assign_plies(config, force)
     process_2d_meshing(config, force)
+    process_anba(config, force)
     logger.info("Blade build completed.")
 
 
@@ -104,6 +112,12 @@ b3_2d_cmd = command(
     callback=process_2d_meshing,
 )
 
+anba_cmd = command(
+    name="anba",
+    help="Process ANBA step.",
+    callback=process_anba,
+)
+
 full_cmd = command(
     name="full",
     help="Build full blade from config.",
@@ -122,5 +136,13 @@ build_group = group(
             help="Force overwrite by cleaning the workdir first",
         )
     ],
-    commands=[airfoils_cmd, loft_cmd, mesh_cmd, drape_cmd, b3_2d_cmd, full_cmd],
+    commands=[
+        airfoils_cmd,
+        loft_cmd,
+        mesh_cmd,
+        drape_cmd,
+        b3_2d_cmd,
+        anba_cmd,
+        full_cmd,
+    ],
 )
