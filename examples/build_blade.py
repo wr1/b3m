@@ -10,6 +10,7 @@ from b3_geo.api.loft_step import LoftStep
 from b3_msh.core.mesh_step import B3MshStep as MeshStep
 from b3_drp import DrapeStep
 from b3_2d.state.b3_2d_mesh import B32dStep
+from b3_2d.state.b3_2d_anba import B32dAnbaStep
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,6 +45,9 @@ def build_blade(config_path, force=False):
     logger.info("Processing 2D meshing...")
     b3_2d_step = B32dStep(config_path)
     b3_2d_step.run()
+    logger.info("Processing ANBA...")
+    b3_2d_anba_step = B32dAnbaStep(config_path)
+    b3_2d_anba_step.run()
     logger.info("Blade build completed.")
 
 
