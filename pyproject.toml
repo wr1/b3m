@@ -1,6 +1,12 @@
 [project]
 name = "b3m"
 version = "0.1.0"
+
+description = "modular successor to b3p"
+authors = [{name = "wr1", email = "8971152+wr1@users.noreply.github.com"}]
+readme = "README.md"
+
+
 dependencies = [
     "treeparse",
     "statesman",
@@ -11,6 +17,7 @@ dependencies = [
     "cgfoil",
     "pydantic",
     "pyyaml",
+    "ccblade"
 ]
 
 [project.optional-dependencies]
@@ -27,16 +34,25 @@ b3m-build = "b3m.integration:main"
 [tool.uv.sources]
 # For local development, use path (uncomment and comment git lines):
 # b3_geo = { path = "../b3_geo" }
+b3_geo = { workspace = true }
 # b3_msh = { path = "../b3_msh" }
+b3_msh = {workspace=true}
 # b3_drp = { path = "../b3_drp" }
+b3_drp = {workspace=true}
 # b3_2d = { path = "../b3_2d" }
+b3_2d =  {workspace=true}
 # cgfoil = { path = "../cgfoil" }
+cgfoil = {workspace=true}
+b3_bem = {workspace=true}
 # For production or CI, use git over HTTPS:
-b3_geo = { git = "https://github.com/wr1/b3_geo.git" , branch = "dev1"}
-b3_msh = { git = "https://github.com/wr1/b3_msh.git" , branch = "dev1"}
-b3_drp = { git = "https://github.com/wr1/b3_drp.git" , branch = "dev1"}
-b3_2d = { git = "https://github.com/wr1/b3_2d.git"   , branch = "dev1"}
-cgfoil = { git = "https://github.com/wr1/cgfoil.git" , branch = "dev1"}
+# b3_geo = { git = "https://github.com/wr1/b3_geo.git" , branch = "dev1"}
+# b3_msh = { git = "https://github.com/wr1/b3_msh.git" , branch = "dev1"}
+# b3_drp = { git = "https://github.com/wr1/b3_drp.git" , branch = "dev1"}
+# b3_2d = { git = "https://github.com/wr1/b3_2d.git"   , branch = "dev1"}
+# cgfoil = { git = "https://github.com/wr1/cgfoil.git" , branch = "dev1"}
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report=term-missing"
+
+# [tool.uv.sources]
+# b3-geo = { workspace = true }
