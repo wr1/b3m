@@ -14,6 +14,8 @@ from b3_2d.state import B32dStep, B32dAnbaStep
 from b3_2d.core.plotting import plot_anba_results
 import json
 import pyvista as pv
+import multiprocessing
+from rich.progress import Progress
 
 logging.basicConfig(
     level=logging.INFO,
@@ -65,6 +67,22 @@ def process_anba(config: str, force: bool = False) -> None:
     b3_2d_anba_step.run(force=force)
 
 
+def plot_single(anba_file: Path, log_file: Path, lock) -> None:
+    """Plot a single ANBA result."""
+    section_dir = anba_file.parent
+    vtk_file = section_dir / "output.vtk"
+    if not vtk_file.exists():
+        with lock:
+            with open(log_file, "a") as f:
+                f.write(f"VTK file not found: {vtk_file}\n")
+        return
+    with open(anba_file, "r") as f:
+        data = json.load(f)
+    output_file = section_dir / "anba_plot.png"
+    mesh = pv.read(str(vtk_file))
+    plot_anba_results(mesh, data, str(output_file), log_file, lock)
+
+
 def plot_anba(config: str, force: bool = False) -> None:
     """Plot ANBA results from config."""
     logger.info("Plotting ANBA results...")
@@ -73,26 +91,32 @@ def plot_anba(config: str, force: bool = False) -> None:
         config_data = yaml.safe_load(f)
     workdir = config_dir / config_data["workdir"]
     output_dir = workdir / "b3_2d"
-    anba_files = list(output_dir.glob("section_*/anba.json"))
+    anba_results_dir = workdir / "anba4_results"
+    anba_results_dir.mkdir(exist_ok=True)
+    plot_log_file = anba_results_dir / "anba_plot.log"
+    with open(plot_log_file, "w") as f:
+        f.write("Starting ANBA plotting\n")
+    anba_files = list(output_dir.glob("section_*/anba_out.json"))
     if not anba_files:
-        logger.warning("No anba.json files found")
+        with open(plot_log_file, "a") as f:
+            f.write("No anba_out.json files found\n")
+        logger.warning("No anba_out.json files found")
         return
-    for anba_file in anba_files:
-        section_dir = anba_file.parent
-        vtk_file = section_dir / "output.vtk"
-        if not vtk_file.exists():
-            logger.warning(f"VTK file not found: {vtk_file}")
-            continue
-        with open(anba_file, "r") as f:
-            data = json.load(f)
-        output_file = section_dir / "anba_plot.png"
-        mesh = pv.read(str(vtk_file))
-        plot_anba_results(mesh, data, str(output_file))
-    logger.info("ANBA plotting completed.")
+    num_processes = min(multiprocessing.cpu_count(), len(anba_files))
+    with multiprocessing.Manager() as manager:
+        lock = manager.Lock()
+        with Progress() as progress:
+            spinner = progress.add_task("Plotting ANBA results...", total=None)
+            with multiprocessing.Pool(processes=num_processes) as pool:
+                pool.starmap(plot_single, [(f, plot_log_file, lock) for f in anba_files])
+            progress.update(spinner, completed=True)
+    with open(plot_log_file, "a") as f:
+        f.write(f"ANBA plotting completed, log saved to {plot_log_file}\n")
+    logger.info(f"ANBA plotting completed, log saved to {plot_log_file}.")
 
 
 def build_blade(config: str, force: bool = False) -> None:
-    """Build blade from config."""
+    """Build blade build from config."""
     logger.info(f"Starting blade build with config: {config}")
     # Load config to get workdir
     with open(config) as f:
