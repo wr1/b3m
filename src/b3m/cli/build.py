@@ -11,6 +11,9 @@ from b3_geo.api.loft_step import LoftStep
 from b3_msh.core.mesh_step import B3MshStep as MeshStep
 from b3_drp import DrapeStep
 from b3_2d.state import B32dStep, B32dAnbaStep
+from b3_2d.core.plotting import plot_anba_results
+import json
+import pyvista as pv
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,7 +37,7 @@ def process_loft(config: str, force: bool = False) -> None:
     loft_step.run(force=force)
 
 
-def generate_mesh(config: str, force: bool = False) -> None:
+def process_mesh(config: str, force: bool = False) -> None:
     """Generate mesh from config."""
     logger.info("Generating mesh...")
     mesh_step = MeshStep(config)
@@ -62,6 +65,32 @@ def process_anba(config: str, force: bool = False) -> None:
     b3_2d_anba_step.run(force=force)
 
 
+def plot_anba(config: str, force: bool = False) -> None:
+    """Plot ANBA results from config."""
+    logger.info("Plotting ANBA results...")
+    config_dir = Path(config).parent
+    with open(config, "r") as f:
+        config_data = yaml.safe_load(f)
+    workdir = config_dir / config_data["workdir"]
+    output_dir = workdir / "b3_2d"
+    anba_files = list(output_dir.glob("section_*/anba.json"))
+    if not anba_files:
+        logger.warning("No anba.json files found")
+        return
+    for anba_file in anba_files:
+        section_dir = anba_file.parent
+        vtk_file = section_dir / "output.vtk"
+        if not vtk_file.exists():
+            logger.warning(f"VTK file not found: {vtk_file}")
+            continue
+        with open(anba_file, "r") as f:
+            data = json.load(f)
+        output_file = section_dir / "anba_plot.png"
+        mesh = pv.read(str(vtk_file))
+        plot_anba_results(mesh, data, str(output_file))
+    logger.info("ANBA plotting completed.")
+
+
 def build_blade(config: str, force: bool = False) -> None:
     """Build blade from config."""
     logger.info(f"Starting blade build with config: {config}")
@@ -75,10 +104,11 @@ def build_blade(config: str, force: bool = False) -> None:
         shutil.rmtree(workdir)
     process_airfoils(config, force)
     process_loft(config, force)
-    generate_mesh(config, force)
+    process_mesh(config, force)
     assign_plies(config, force)
     process_2d_meshing(config, force)
     process_anba(config, force)
+    plot_anba(config, force)
     logger.info("Blade build completed.")
 
 
@@ -97,7 +127,7 @@ loft_cmd = command(
 mesh_cmd = command(
     name="mesh",
     help="Generate mesh step.",
-    callback=generate_mesh,
+    callback=process_mesh,
 )
 
 drape_cmd = command(
@@ -116,6 +146,12 @@ anba_cmd = command(
     name="anba",
     help="Process ANBA step.",
     callback=process_anba,
+)
+
+plot_cmd = command(
+    name="plot",
+    help="Plot ANBA results.",
+    callback=plot_anba,
 )
 
 full_cmd = command(
@@ -143,6 +179,7 @@ build_group = group(
         drape_cmd,
         b3_2d_cmd,
         anba_cmd,
+        plot_cmd,
         full_cmd,
     ],
 )
