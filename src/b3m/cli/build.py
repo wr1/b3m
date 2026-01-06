@@ -11,7 +11,8 @@ from b3_geo.api.loft_step import LoftStep
 from b3_msh.core.mesh_step import B3MshStep as MeshStep
 from b3_drp import DrapeStep
 from b3_2d.state import B32dStep, B32dAnbaStep
-from b3_2d.core.plotting import plot_anba_results
+from b3_2d.core.plotting import plot_section_anba
+from b3_2d.core.span_plotting import plot_span_anba
 import json
 import pyvista as pv
 import multiprocessing
@@ -80,7 +81,7 @@ def plot_single(anba_file: Path, log_file: Path, lock) -> None:
         data = json.load(f)
     output_file = section_dir / "anba_plot.png"
     mesh = pv.read(str(vtk_file))
-    plot_anba_results(mesh, data, str(output_file), log_file, lock)
+    plot_section_anba(mesh, data, str(output_file), log_file, lock)
 
 
 def plot_anba(config: str, force: bool = False) -> None:
@@ -110,13 +111,16 @@ def plot_anba(config: str, force: bool = False) -> None:
             with multiprocessing.Pool(processes=num_processes) as pool:
                 pool.starmap(plot_single, [(f, plot_log_file, lock) for f in anba_files])
             progress.update(spinner, completed=True)
+    # Span plotting
+    span_output_file = anba_results_dir / "span_plot.png"
+    plot_span_anba(str(output_dir), str(span_output_file))
     with open(plot_log_file, "a") as f:
         f.write(f"ANBA plotting completed, log saved to {plot_log_file}\n")
     logger.info(f"ANBA plotting completed, log saved to {plot_log_file}.")
 
 
 def build_blade(config: str, force: bool = False) -> None:
-    """Build blade build from config."""
+    """Build blade from config."""
     logger.info(f"Starting blade build with config: {config}")
     # Load config to get workdir
     with open(config) as f:
