@@ -109,7 +109,9 @@ def plot_anba(config: str, force: bool = False) -> None:
         with Progress() as progress:
             spinner = progress.add_task("Plotting ANBA results...", total=None)
             with multiprocessing.Pool(processes=num_processes) as pool:
-                pool.starmap(plot_single, [(f, plot_log_file, lock) for f in anba_files])
+                pool.starmap(
+                    plot_single, [(f, plot_log_file, lock) for f in anba_files]
+                )
             progress.update(spinner, completed=True)
     # Span plotting
     span_output_file = anba_results_dir / "span_plot.png"
