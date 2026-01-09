@@ -2,8 +2,8 @@ repos:
   - repo: local
     hooks:
       - id: enforce-git-sources
-        name: Enforce Git Sources
-        entry: python scripts/enforce_git_sources.py --fix
+        name: Enforce Git sources only (no active local paths)
+        entry: python scripts/enforce_git_sources.py --fix  # Add --fix for auto-comment
         language: system
+        files: ^pyproject\.toml$
         pass_filenames: false
-        files: pyproject.toml

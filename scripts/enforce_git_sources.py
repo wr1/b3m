@@ -1,110 +1,125 @@
-import argparse
-import re
+#!/usr/bin/env python3
+"""
+Pre-commit hook: Enforce only Git sources are active in [tool.uv.sources].
+- Blocks commit if any uncommented 'path =' or 'editable = true' exists for active deps.
+- Optionally auto-fixes by commenting out local lines (--fix).
+- Ignores commented local lines (they are allowed as dev helpers).
+"""
+
 import sys
-import tomllib
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+PYPROJECT_PATH = ROOT / "pyproject.toml"
+
+
+def get_active_deps(content: str) -> set:
+    """Extract package names from [project.dependencies] and optional-dependencies."""
+    active = set()
+    lines = content.splitlines()
+    in_deps = False
+    in_optional = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[project.dependencies]"):
+            in_deps = True
+            continue
+        if stripped.startswith("[project.optional-dependencies]"):
+            in_deps = False
+            in_optional = True
+            continue
+        if stripped.startswith("["):
+            in_deps = in_optional = False
+        if (in_deps or in_optional) and stripped and not stripped.startswith("#"):
+            # Extract package name (before any ==, >=, [, {, etc.)
+            match = re.match(r"^([a-zA-Z0-9_-]+)", stripped)
+            if match:
+                active.add(match.group(1))
+    return active
+
+
+def has_uncommented_local_source(content: str, active_deps: set) -> list:
+    """Return list of lines (index, package) with uncommented local path/editable."""
+    bad_lines = []
+    lines = content.splitlines()
+    in_sources = False
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("[tool.uv.sources]"):
+            in_sources = True
+            continue
+        if in_sources and stripped and not stripped.startswith("#"):
+            for pkg in active_deps:
+                # Look for path = or editable = true
+                if re.search(
+                    rf"^{re.escape(pkg)}\s*=\s*{{.*?\bpath\s*=", stripped, re.IGNORECASE
+                ):
+                    bad_lines.append((i, pkg, "path"))
+                elif re.search(
+                    rf"^{re.escape(pkg)}\s*=\s*{{.*?\beditable\s*=\s*true",
+                    stripped,
+                    re.IGNORECASE,
+                ):
+                    bad_lines.append((i, pkg, "editable"))
+    return bad_lines
+
+
+def auto_comment_local(lines: list[str], bad_lines: list) -> list[str]:
+    """Comment out the bad local source lines."""
+    for i, pkg, kind in sorted(bad_lines, reverse=True):
+        lines[i] = (
+            f"# {lines[i].rstrip()}  # AUTO-COMMENTED by pre-commit: use Git sources for commits\n"
+        )
+    return lines
 
 
 def main():
-    """Manage sources in pyproject.toml: enforce Git for production or switch to local for development."""
-    parser = argparse.ArgumentParser(description="Check or fix sources in pyproject.toml for active dependencies")
-    parser.add_argument('--fix', action='store_true', help="Automatically fix sources (comment local for --git, switch to local for --local)")
-    parser.add_argument('--local', action='store_true', help="Switch to local sources for active dependencies (development mode)")
-    args = parser.parse_args()
-
-    try:
-        with open('pyproject.toml', 'rb') as f:
-            data = tomllib.load(f)
-    except FileNotFoundError:
-        print("Error: pyproject.toml not found.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error parsing pyproject.toml: {e}")
-        sys.exit(1)
-
-    # Get active dependencies (uncommented in project.dependencies)
-    active_deps = set()
-    if 'project' in data and 'dependencies' in data['project']:
-        for dep in data['project']['dependencies']:
-            # Assuming deps are strings like "package" or "package>=1.0"
-            # Extract package name (before any version spec)
-            match = re.match(r'^([a-zA-Z0-9_-]+)', dep.strip())
-            if match:
-                active_deps.add(match.group(1))
-
-    # Also check optional-dependencies if they exist (though typically dev tools)
-    if 'project' in data and 'optional-dependencies' in data['project']:
-        for group, deps in data['project']['optional-dependencies'].items():
-            for dep in deps:
-                match = re.match(r'^([a-zA-Z0-9_-]+)', dep.strip())
-                if match:
-                    active_deps.add(match.group(1))
-
-    # Read the file for text editing
-    try:
-        with open('pyproject.toml', 'r') as f:
-            lines = f.readlines()
-    except FileNotFoundError:
+    if not PYPROJECT_PATH.exists():
         print("Error: pyproject.toml not found.")
         sys.exit(1)
 
-    modified = False
-    if args.local:
-        # Switch to local: comment git lines, uncomment local lines for active deps
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped.startswith('#'):
-                uncommented = stripped[1:].strip()
-            else:
-                uncommented = stripped
-            for pkg in active_deps:
-                # Check for git source
-                if re.search(r'^' + re.escape(pkg) + r'\s*=\s*\{.*\bgit\s*=', uncommented):
-                    if not stripped.startswith('#'):
-                        lines[i] = '#' + line
-                        modified = True
-                        print(f"Commented git source for {pkg}")
-                        break
-                # Check for local source
-                elif re.search(r'^' + re.escape(pkg) + r'\s*=\s*\{.*\bpath\s*=', uncommented):
-                    if stripped.startswith('#'):
-                        lines[i] = line[1:]  # Uncomment
-                        modified = True
-                        print(f"Uncommented local source for {pkg}")
-                        break
+    content = PYPROJECT_PATH.read_text()
+    active_deps = get_active_deps(content)
+
+    if not active_deps:
+        print("No active dependencies found – skipping check.")
+        sys.exit(0)
+
+    bad = has_uncommented_local_source(content, active_deps)
+
+    if not bad:
+        print(
+            "✓ All active dependencies use Git sources (or no local paths active) – commit allowed."
+        )
+        sys.exit(0)
+
+    print(
+        "✗ ERROR: Uncommented local path or editable=true found for active dependencies!"
+    )
+    print(
+        "  These must be commented out before committing (production/CI must use Git sources)."
+    )
+    print("  Bad entries:")
+    for i, pkg, kind in bad:
+        print(f"    - Line {i + 1}: {pkg} ({kind})")
+
+    # Optional: auto-fix if --fix is passed
+    if len(sys.argv) > 1 and sys.argv[1] == "--fix":
+        print("\nAuto-fixing: commenting out local sources...")
+        lines = content.splitlines()
+        fixed_lines = auto_comment_local(lines, bad)
+        PYPROJECT_PATH.write_text("\n".join(fixed_lines) + "\n")
+        print("Fixed! Please stage the changes and commit again.")
+        sys.exit(0)
     else:
-        # Enforce git: comment local lines for active deps
-        bad_lines = []
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if not stripped.startswith('#'):
-                for pkg in active_deps:
-                    if re.search(r'^' + re.escape(pkg) + r'\s*=\s*\{.*(?:\bpath\s*=|\beditable\s*=\s*true)', stripped):
-                        bad_lines.append(i)
-                        break
-        if bad_lines:
-            if args.fix:
-                # Comment out the bad lines
-                for i in sorted(bad_lines, reverse=True):
-                    lines[i] = '#' + lines[i]
-                modified = True
-                print(f"Fixed: Commented out local sources for active dependencies.")
-            else:
-                print("Error: Found uncommented local sources for active dependencies in pyproject.toml.")
-                print("Active dependencies with local sources:")
-                for i in bad_lines:
-                    match = re.search(r'^([a-zA-Z0-9_-]+)\s*=', lines[i].strip())
-                    if match:
-                        print(f"  {match.group(1)}")
-                print("Please comment them out for production commits, or run with --fix to auto-fix.")
-                sys.exit(1)
-        else:
-            print("OK: No local sources found for active dependencies in pyproject.toml.")
-
-    if modified:
-        with open('pyproject.toml', 'w') as f:
-            f.writelines(lines)
-        print("pyproject.toml updated.")
+        print("\nFix options:")
+        print("  1. Manually comment out the local lines in [tool.uv.sources]")
+        print("  2. Run with --fix to auto-comment them:")
+        print("     python scripts/enforce_git_sources.py --fix")
+        print("  3. Use your toggle script if you have one.")
+        sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
