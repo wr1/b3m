@@ -1,23 +1,19 @@
 [project]
 name = "b3m"
 version = "0.1.0"
-
 description = "modular successor to b3p"
-authors = [{name = "wr1", email = "8971152+wr1@users.noreply.github.com"}]
+authors = [
+    { name = "wr1", email = "8971152+wr1@users.noreply.github.com" },
+]
 readme = "README.md"
-
-
 dependencies = [
     "treeparse",
     "statesman",
-    # "b3_geo",
-    # "b3_msh",
-    # "b3_drp",
-    # "b3_2d",
-    # "cgfoil",
     "pydantic",
     "pyyaml",
-    "ccblade"
+    "ccblade",
+    "tomli>=2.3.0",
+    "tomli-w>=1.2.0",
 ]
 
 [project.optional-dependencies]
@@ -25,28 +21,42 @@ dev = [
     "ruff",
     "pytest",
     "pytest-cov",
-    "loguru"
+    "loguru",
+    "tomli",
+    "tomli-w",
 ]
 
 [project.scripts]
 b3m = "b3m.cli:main"
 b3m-build = "b3m.integration:main"
 
-[tool.uv.sources]
-# b3_geo = { git = "https://github.com/wr1/b3_geo.git", branch = "main" }
-# b3_msh = { git = "https://github.com/wr1/b3_msh.git", branch = "main" }
-# b3_drp = { git = "https://github.com/wr1/b3_drp.git", branch = "main" }
-# b3_2d  = { git = "https://github.com/wr1/b3_2d.git",  branch = "dev1" }
-# b3_bem = { git = "https://github.com/wr1/b3_bem.git", branch = "main" }
-# b3_mat = { git = "https://github.com/wr1/b3_mat.git", branch = "main" }
-# cgfoil = { git = "https://github.com/wr1/cgfoil.git", branch = "dev1" }
-b3_geo = { path = "../b3_geo", editable = true }
-b3_msh = { path = "../b3_msh", editable = true }
-b3_drp = { path = "../b3_drp", editable = true }
-b3_2d  = { path = "../b3_2d",  editable = true }
-b3_bem = { path = "../b3_bem", editable = true }
-b3_mat = { path = "../b3_mat", editable = true }
-cgfoil = { path = "../cgfoil", editable = true }
+[tool.uv.sources.b3_geo]
+path = "../b3_geo"
+editable = true
+
+[tool.uv.sources.b3_msh]
+path = "../b3_msh"
+editable = true
+
+[tool.uv.sources.b3_drp]
+path = "../b3_drp"
+editable = true
+
+[tool.uv.sources.b3_2d]
+path = "../b3_2d"
+editable = true
+
+[tool.uv.sources.b3_bem]
+path = "../b3_bem"
+editable = true
+
+[tool.uv.sources.b3_mat]
+path = "../b3_mat"
+editable = true
+
+[tool.uv.sources.cgfoil]
+path = "../cgfoil"
+editable = true
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report=term-missing"
