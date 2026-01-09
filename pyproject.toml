@@ -1,6 +1,6 @@
 [project]
 name = "b3m"
-version = "0.1.0"
+version = "0.1.1"
 description = "modular successor to b3p"
 authors = [
     { name = "wr1", email = "8971152+wr1@users.noreply.github.com" },
