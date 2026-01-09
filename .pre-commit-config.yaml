@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: enforce-git-sources
         name: Enforce Git Sources
-        entry: python scripts/enforce_git_sources.py
+        entry: python scripts/enforce_git_sources.py --fix
         language: system
         pass_filenames: false
         files: pyproject.toml
