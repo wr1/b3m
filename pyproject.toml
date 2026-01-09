@@ -31,32 +31,37 @@ b3m = "b3m.cli:main"
 b3m-build = "b3m.integration:main"
 
 [tool.uv.sources.b3_geo]
-path = "../b3_geo"
-editable = true
+git = "https://github.com/wr1/b3_geo.git"
+branch = "main"
 
 [tool.uv.sources.b3_msh]
-path = "../b3_msh"
-editable = true
+git = "https://github.com/wr1/b3_msh.git"
+branch = "main"
 
 [tool.uv.sources.b3_drp]
-path = "../b3_drp"
-editable = true
+git = "https://github.com/wr1/b3_drp.git"
+branch = "main"
 
 [tool.uv.sources.b3_2d]
-path = "../b3_2d"
-editable = true
+git = "https://github.com/wr1/b3_2d.git"
+branch = "dev1"
 
 [tool.uv.sources.b3_bem]
-path = "../b3_bem"
-editable = true
+git = "https://github.com/wr1/b3_bem.git"
+branch = "main"
 
 [tool.uv.sources.b3_mat]
-path = "../b3_mat"
-editable = true
+git = "https://github.com/wr1/b3_mat.git"
+branch = "main"
 
 [tool.uv.sources.cgfoil]
-path = "../cgfoil"
-editable = true
+git = "https://github.com/wr1/cgfoil.git"
+branch = "dev1"
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report=term-missing"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+]
