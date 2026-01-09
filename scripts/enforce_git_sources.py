@@ -1,125 +1,138 @@
-#!/usr/bin/env python3
-"""
-Pre-commit hook: Enforce only Git sources are active in [tool.uv.sources].
-- Blocks commit if any uncommented 'path =' or 'editable = true' exists for active deps.
-- Optionally auto-fixes by commenting out local lines (--fix).
-- Ignores commented local lines (they are allowed as dev helpers).
-"""
-
+import argparse
 import sys
-import re
-from pathlib import Path
-
-ROOT = Path(__file__).parent.parent
-PYPROJECT_PATH = ROOT / "pyproject.toml"
-
-
-def get_active_deps(content: str) -> set:
-    """Extract package names from [project.dependencies] and optional-dependencies."""
-    active = set()
-    lines = content.splitlines()
-    in_deps = False
-    in_optional = False
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("[project.dependencies]"):
-            in_deps = True
-            continue
-        if stripped.startswith("[project.optional-dependencies]"):
-            in_deps = False
-            in_optional = True
-            continue
-        if stripped.startswith("["):
-            in_deps = in_optional = False
-        if (in_deps or in_optional) and stripped and not stripped.startswith("#"):
-            # Extract package name (before any ==, >=, [, {, etc.)
-            match = re.match(r"^([a-zA-Z0-9_-]+)", stripped)
-            if match:
-                active.add(match.group(1))
-    return active
-
-
-def has_uncommented_local_source(content: str, active_deps: set) -> list:
-    """Return list of lines (index, package) with uncommented local path/editable."""
-    bad_lines = []
-    lines = content.splitlines()
-    in_sources = False
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("[tool.uv.sources]"):
-            in_sources = True
-            continue
-        if in_sources and stripped and not stripped.startswith("#"):
-            for pkg in active_deps:
-                # Look for path = or editable = true
-                if re.search(
-                    rf"^{re.escape(pkg)}\s*=\s*{{.*?\bpath\s*=", stripped, re.IGNORECASE
-                ):
-                    bad_lines.append((i, pkg, "path"))
-                elif re.search(
-                    rf"^{re.escape(pkg)}\s*=\s*{{.*?\beditable\s*=\s*true",
-                    stripped,
-                    re.IGNORECASE,
-                ):
-                    bad_lines.append((i, pkg, "editable"))
-    return bad_lines
-
-
-def auto_comment_local(lines: list[str], bad_lines: list) -> list[str]:
-    """Comment out the bad local source lines."""
-    for i, pkg, kind in sorted(bad_lines, reverse=True):
-        lines[i] = (
-            f"# {lines[i].rstrip()}  # AUTO-COMMENTED by pre-commit: use Git sources for commits\n"
-        )
-    return lines
 
 
 def main():
-    if not PYPROJECT_PATH.exists():
+    """Manage sources in pyproject.toml: enforce Git, switch to local, or toggle between modes."""
+    parser = argparse.ArgumentParser(description="Manage sources in pyproject.toml for active dependencies")
+    parser.add_argument('--git', action='store_true', help="Automatically enforce git sources")
+    parser.add_argument('--local', action='store_true', help="Switch to local sources (development mode)")
+    parser.add_argument('--toggle', action='store_true', help="Toggle between git and local sources based on current state")
+    args = parser.parse_args()
+
+    if args.toggle and (args.local or args.git):
+        print("Error: --toggle cannot be used with --local or --git.")
+        sys.exit(1)
+
+    # Read the file for text editing
+    try:
+        with open('pyproject.toml', 'r') as f:
+            lines = f.readlines()
+    except FileNotFoundError:
         print("Error: pyproject.toml not found.")
         sys.exit(1)
 
-    content = PYPROJECT_PATH.read_text()
-    active_deps = get_active_deps(content)
+    # Get all source packages from the lines (commented or uncommented)
+    active_deps = set()
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('#'):
+            uncommented = stripped[1:].strip()
+        else:
+            uncommented = stripped
+        if ' = {' in uncommented:
+            pkg = uncommented.split(' = {')[0].strip()
+            if pkg:
+                active_deps.add(pkg)
 
-    if not active_deps:
-        print("No active dependencies found – skipping check.")
-        sys.exit(0)
-
-    bad = has_uncommented_local_source(content, active_deps)
-
-    if not bad:
-        print(
-            "✓ All active dependencies use Git sources (or no local paths active) – commit allowed."
-        )
-        sys.exit(0)
-
-    print(
-        "✗ ERROR: Uncommented local path or editable=true found for active dependencies!"
-    )
-    print(
-        "  These must be commented out before committing (production/CI must use Git sources)."
-    )
-    print("  Bad entries:")
-    for i, pkg, kind in bad:
-        print(f"    - Line {i + 1}: {pkg} ({kind})")
-
-    # Optional: auto-fix if --fix is passed
-    if len(sys.argv) > 1 and sys.argv[1] == "--fix":
-        print("\nAuto-fixing: commenting out local sources...")
-        lines = content.splitlines()
-        fixed_lines = auto_comment_local(lines, bad)
-        PYPROJECT_PATH.write_text("\n".join(fixed_lines) + "\n")
-        print("Fixed! Please stage the changes and commit again.")
-        sys.exit(0)
+    # Determine mode
+    if args.toggle:
+        # Check if any source has uncommented local
+        has_local = False
+        for line in lines:
+            stripped = line.strip()
+            if not stripped.startswith('#'):
+                for pkg in active_deps:
+                    if stripped.startswith(pkg + ' = {') and 'path =' in stripped:
+                        has_local = True
+                        break
+                if has_local:
+                    break
+        if has_local:
+            mode = 'git'
+        else:
+            mode = 'local'
+        print(f"Toggling to {mode} mode.")
+    elif args.local:
+        mode = 'local'
     else:
-        print("\nFix options:")
-        print("  1. Manually comment out the local lines in [tool.uv.sources]")
-        print("  2. Run with --fix to auto-comment them:")
-        print("     python scripts/enforce_git_sources.py --fix")
-        print("  3. Use your toggle script if you have one.")
-        sys.exit(1)
+        mode = 'git'
+
+    modified = False
+    if mode == 'local':
+        # Switch to local: comment git lines, uncomment local lines for all sources
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith('#'):
+                uncommented = stripped[1:].strip()
+            else:
+                uncommented = stripped
+            for pkg in active_deps:
+                if uncommented.startswith(pkg + ' = {') and 'git =' in uncommented:
+                    if not stripped.startswith('#'):
+                        lines[i] = '#' + line
+                        modified = True
+                        break
+                elif uncommented.startswith(pkg + ' = {') and 'path =' in uncommented:
+                    if stripped.startswith('#'):
+                        lines[i] = line[1:]
+                        modified = True
+                        break
+    else:  # git
+        # Comment local lines, uncomment git lines for all sources
+        bad_lines = []
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if not stripped.startswith('#'):
+                for pkg in active_deps:
+                    if stripped.startswith(pkg + ' = {') and ('path =' in stripped or 'editable = true' in stripped):
+                        bad_lines.append(i)
+                        break
+        if bad_lines:
+            for i in sorted(bad_lines, reverse=True):
+                lines[i] = '#' + lines[i]
+            modified = True
+        # Now uncomment git lines
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            if stripped.startswith('#'):
+                uncommented = stripped[1:].strip()
+                for pkg in active_deps:
+                    if uncommented.startswith(pkg + ' = {') and 'git =' in uncommented:
+                        lines[i] = line[1:]
+                        modified = True
+                        break
+        if bad_lines or modified:
+            print("Switched to git mode.")
+        elif not args.toggle:
+            print("OK: Already in git mode.")
+
+    if modified:
+        with open('pyproject.toml', 'w') as f:
+            f.writelines(lines)
+        # Print the updated sources block
+        print("Updated [tool.uv.sources]:")
+        in_sources = False
+        for line in lines:
+            if line.strip() == '[tool.uv.sources]':
+                in_sources = True
+                print(line.rstrip())
+            elif in_sources:
+                if line.strip().startswith('[') and line.strip() != '[tool.uv.sources]':
+                    break
+                print(line.rstrip())
+        print("pyproject.toml updated.")
+    elif mode == 'git' and not args.git and not args.toggle:
+        if bad_lines:
+            print("Error: Found uncommented local sources.")
+            for i in bad_lines:
+                match = lines[i].strip().split(' = ')[0]
+                print(f"  {match}")
+            print("Run with --git to auto-fix.")
+            sys.exit(1)
+        else:
+            print("OK: Already in git mode.")
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
