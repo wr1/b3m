@@ -49,11 +49,12 @@ def test_full_pipeline(sample_config):
 
         # Mock the steps to avoid actual computation
         with (
-            patch("b3m.integration.AFStep") as mock_af,
-            patch("b3m.integration.LoftStep") as mock_loft,
-            patch("b3m.integration.MeshStep") as mock_mesh,
-            patch("b3m.integration.DrapeStep") as mock_drape,
-            patch("b3m.integration.B32dStep") as mock_2d,
+            patch("b3_geo.api.af_step.AFStep") as mock_af,
+            patch("b3_geo.api.loft_step.LoftStep") as mock_loft,
+            patch("b3_msh.core.mesh_step.B3MshStep") as mock_mesh,
+            patch("b3_drp.DrapeStep") as mock_drape,
+            patch("b3_2d.state.B32dStep") as mock_2d,
+            patch("b3_2d.state.B32dAnbaStep") as mock_anba,
         ):
             # Run the build
             build_blade(str(config_path), force=True)
@@ -69,3 +70,5 @@ def test_full_pipeline(sample_config):
             mock_drape.return_value.run.assert_called_once()
             mock_2d.assert_called_once_with(str(config_path))
             mock_2d.return_value.run.assert_called_once()
+            mock_anba.assert_called_once_with(str(config_path))
+            mock_anba.return_value.run.assert_called_once()

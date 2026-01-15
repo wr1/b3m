@@ -20,7 +20,7 @@ def main():
         config = validate_config(config_path)
         print(f"Config validation successful for {config_path}")
         print(f"Workdir: {config.workdir}")
-        print(f"Number of airfoils: {len(config.airfoils)}")
+        print(f"Number of airfoils: {len(config.airfoils.root)}")
     except Exception as e:
         print(f"Validation failed: {e}")
         sys.exit(1)
