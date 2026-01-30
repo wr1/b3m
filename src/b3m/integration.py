@@ -9,7 +9,7 @@ from pathlib import Path
 from rich.logging import RichHandler
 from b3_geo.api.af_step import AFStep
 from b3_geo.api.loft_step import LoftStep
-from b3_msh.core.mesh_step import B3MshStep as MeshStep
+from b3_msh.step.blade_mesh_step import B3MshStep as MeshStep
 from b3_drp import DrapeStep
 from b3_2d.state import B32dStep
 from b3_2d.state import B32dAnbaStep

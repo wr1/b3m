@@ -1,11 +1,8 @@
 """CLI for blade build functionality."""
 
 import logging
-from pathlib import Path
 from rich.logging import RichHandler
 from treeparse import command, argument, option, group
-import yaml
-import shutil
 from .steps import (
     process_airfoils,
     process_loft,
