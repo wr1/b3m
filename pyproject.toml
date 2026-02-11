@@ -32,27 +32,27 @@ b3m-build = "b3m.integration:main"
 
 [tool.uv.sources.b3_geo]
 git = "https://github.com/wr1/b3_geo.git"
-branch = "main"
+branch = "dev1"
 
 [tool.uv.sources.b3_msh]
 git = "https://github.com/wr1/b3_msh.git"
-branch = "main"
+branch = "mul3d1"
 
 [tool.uv.sources.b3_drp]
 git = "https://github.com/wr1/b3_drp.git"
-branch = "main"
+branch = "dev1"
 
 [tool.uv.sources.b3_2d]
 git = "https://github.com/wr1/b3_2d.git"
-branch = "dev1"
+branch = "dev3"
 
 [tool.uv.sources.b3_bem]
 git = "https://github.com/wr1/b3_bem.git"
-branch = "main"
+branch = "dev1"
 
 [tool.uv.sources.b3_mat]
 git = "https://github.com/wr1/b3_mat.git"
-branch = "main"
+branch = "dev1"
 
 [tool.uv.sources.cgfoil]
 git = "https://github.com/wr1/cgfoil.git"
