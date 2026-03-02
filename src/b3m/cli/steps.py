@@ -31,6 +31,7 @@ def process_airfoils(config: str, force: bool = False) -> None:
             state_file.unlink()
     logger.info("Processing airfoils...")
     from b3_geo.api.af_step import AFStep
+
     af_step = AFStep(config)
     af_step.run(force=force)
 
@@ -47,6 +48,7 @@ def process_loft(config: str, force: bool = False) -> None:
             state_file.unlink()
     logger.info("Processing loft...")
     from b3_geo.api.loft_step import LoftStep
+
     loft_step = LoftStep(config)
     loft_step.run(force=force)
 
@@ -63,6 +65,7 @@ def process_mesh(config: str, force: bool = False) -> None:
             state_file.unlink()
     logger.info("Generating mesh...")
     from b3_msh.step.blade_mesh_step import B3MshStep as MeshStep
+
     mesh_step = MeshStep(config)
     mesh_step.run(force=force)
 
@@ -79,6 +82,7 @@ def assign_plies(config: str, force: bool = False) -> None:
             state_file.unlink()
     logger.info("Assigning plies...")
     from b3_drp import DrapeStep
+
     drape_step = DrapeStep(config)
     drape_step.run(force=force)
 
@@ -95,6 +99,7 @@ def process_2d_meshing(config: str, force: bool = False) -> None:
             state_file.unlink()
     logger.info("Processing 2D meshing...")
     from b3_2d.state import B32dStep
+
     b3_2d_step = B32dStep(config)
     b3_2d_step.run(force=force)
 
@@ -111,6 +116,7 @@ def process_anba(config: str, force: bool = False) -> None:
             state_file.unlink()
     logger.info("Processing ANBA...")
     from b3_2d.state import B32dAnbaStep
+
     b3_2d_anba_step = B32dAnbaStep(config)
     b3_2d_anba_step.run(force=force)
 
@@ -155,6 +161,7 @@ def plot_anba(config: str, force: bool = False) -> None:
     # Span plotting
     span_output_file = anba_results_dir / "span_plot.png"
     from b3_2d.core.span_plotting import plot_span_anba
+
     plot_span_anba(str(output_dir), str(span_output_file))
     with open(plot_log_file, "a") as f:
         f.write(f"ANBA plotting completed, log saved to {plot_log_file}\n")
@@ -197,4 +204,5 @@ def plot_single(anba_file: Path, log_file: Path, lock) -> None:
     output_file = section_dir / "anba_plot.png"
     mesh = pv.read(str(vtk_file))
     from b3_2d.core.plotting import plot_section_anba
+
     plot_section_anba(mesh, data, str(output_file), log_file, lock)

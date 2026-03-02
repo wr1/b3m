@@ -27,31 +27,37 @@ def build_blade(config_path, force=False):
 
     logger.info("Processing airfoils...")
     from b3_geo.api.af_step import AFStep
+
     af_step = AFStep(config_path)
     af_step.run()
 
     logger.info("Processing loft...")
     from b3_geo.api.loft_step import LoftStep
+
     loft_step = LoftStep(config_path)
     loft_step.run()
 
     logger.info("Generating mesh...")
     from b3_msh.core.mesh_step import B3MshStep as MeshStep
+
     mesh_step = MeshStep(config_path)
     mesh_step.run()
 
     logger.info("Assigning plies...")
     from b3_drp import DrapeStep
+
     drape_step = DrapeStep(config_path)
     drape_step.run()
 
     logger.info("Processing 2D meshing...")
     from b3_2d.state.b3_2d_mesh import B32dStep
+
     b3_2d_step = B32dStep(config_path)
     b3_2d_step.run()
 
     logger.info("Processing ANBA...")
     from b3_2d.state.b3_2d_anba import B32dAnbaStep
+
     b3_2d_anba_step = B32dAnbaStep(config_path)
     b3_2d_anba_step.run()
 
