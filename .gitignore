@@ -143,9 +143,9 @@ ei.cfg
 
 # Project specific
 temp_blade/
-*.yml
+# *.yml
 *.yaml
-config/
+# config/
 out.txt
 ruff.txt
 __temp.json
