@@ -13,12 +13,12 @@ def test_build_blade(tmp_path):
     (tmp_path / "test_workdir").mkdir()
 
     with (
-        patch("b3m.integration.AFStep") as mock_af_step,
-        patch("b3m.integration.LoftStep") as mock_loft_step,
-        patch("b3m.integration.MeshStep") as mock_mesh_step,
-        patch("b3m.integration.DrapeStep") as mock_drape_step,
-        patch("b3m.integration.B32dStep") as mock_b3_2d_step,
-        patch("b3m.integration.B32dAnbaStep") as mock_b3_2d_anba_step,
+        patch("b3_geo.api.af_step.AFStep") as mock_af_step,
+        patch("b3_geo.api.loft_step.LoftStep") as mock_loft_step,
+        patch("b3_msh.step.blade_mesh_step.B3MshStep") as mock_mesh_step,
+        patch("b3_drp.DrapeStep") as mock_drape_step,
+        patch("b3_2d.state.B32dStep") as mock_b3_2d_step,
+        patch("b3_2d.state.B32dAnbaStep") as mock_b3_2d_anba_step,
         patch("b3m.integration.shutil.rmtree") as mock_rmtree,
     ):
         # Call build_blade with force=True
