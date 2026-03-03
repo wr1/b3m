@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 """
-Generate dev-overrides.txt for clean local editable development.
-
-Run ONLY on your dev machine with sibling repos.
-This overrides the git URLs with local paths (editable).
+Generate dev-overrides.txt for local editable mode (only on your dev machine with sibling repos).
 
 Usage:
     python scripts/setup-dev.py
     uv sync --override dev-overrides.txt
 
-On other machines / CI just use `uv sync` (git version).
+This overrides the git version with editable local paths.
 """
 
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent.resolve()
 
-# dist name → sibling directory
 PACKAGES = {
     "b3-geo": "../b3_geo",
     "b3_msh": "../b3_msh",
@@ -42,5 +38,3 @@ OVERRIDES_FILE.write_text("\n".join(lines) + "\n")
 print(f"\n✅ Generated {OVERRIDES_FILE}")
 print("\nLocal dev command:")
 print("   uv sync --override dev-overrides.txt")
-print("\nClean / CI / other machines:")
-print("   uv sync")
