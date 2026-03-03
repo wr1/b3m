@@ -13,6 +13,12 @@ dependencies = [
     "pyyaml",
     "tomli>=2.3.0",
     "tomli-w>=1.2.0",
+    "b3-geo @ git+https://github.com/wr1/b3_geo.git@dev1",
+    "b3_msh @ git+https://github.com/wr1/b3_msh.git@mul3d1",
+    "b3_drp @ git+https://github.com/wr1/b3_drp.git@dev1",
+    "b3-2d @ git+https://github.com/wr1/b3_2d.git@dev3",
+    "b3_mat @ git+https://github.com/wr1/b3_mat.git@dev1",
+    "cgfoil @ git+https://github.com/wr1/cgfoil.git@dev1",
 ]
 
 [project.optional-dependencies]
@@ -26,42 +32,12 @@ dev = [
 ]
 bem = [
     "ccblade",
+    "b3_bem @ git+https://github.com/wr1/b3_bem.git@dev1",
 ]
 
 [project.scripts]
 b3m = "b3m.cli:main"
 b3m-build = "b3m.integration:main"
-
-[tool.uv.sources.b3_geo]
-git = "https://github.com/wr1/b3_geo.git"
-branch = "dev1"
-
-[tool.uv.sources.b3_msh]
-git = "https://github.com/wr1/b3_msh.git"
-branch = "mul3d1"
-
-[tool.uv.sources.b3_drp]
-git = "https://github.com/wr1/b3_drp.git"
-branch = "dev1"
-
-[tool.uv.sources.b3_2d]
-git = "https://github.com/wr1/b3_2d.git"
-branch = "dev3"
-
-[tool.uv.sources.b3_bem]
-git = "https://github.com/wr1/b3_bem.git"
-branch = "dev1"
-
-[tool.uv.sources.b3_mat]
-git = "https://github.com/wr1/b3_mat.git"
-branch = "dev1"
-
-[tool.uv.sources.cgfoil]
-git = "https://github.com/wr1/cgfoil.git"
-branch = "dev1"
-
-[tool.pytest.ini_options]
-addopts = "--cov=src --cov-report=term-missing"
 
 [dependency-groups]
 dev = [
