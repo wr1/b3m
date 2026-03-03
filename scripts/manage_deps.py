@@ -1,26 +1,15 @@
 #!/usr/bin/env python3
 """
-Minimal, robust, future-proof dependency switcher (direct TOML edit).
-No uv add calls → never triggers workspace/unmanaged errors again.
+Final robust dependency switcher for b3m.
 
-Usage:
-    uv run python scripts/manage_deps.py --git      # default (everyone/CI)
-    uv run python scripts/manage_deps.py --local    # your machine only
+Rebuilds everything + adds the hatchling allow-direct-references flag.
+This is the permanent fix for the metadata error.
 """
 import argparse
 import os
 from pathlib import Path
 import tomli
 import tomli_w
-
-def load():
-    p = Path("pyproject.toml")
-    with open(p, "rb") as f:
-        return tomli.load(f), p
-
-def save(data, p):
-    with open(p, "wb") as f:
-        tomli_w.dump(data, f)
 
 def main():
     os.environ.pop("VIRTUAL_ENV", None)
@@ -31,50 +20,62 @@ def main():
     g.add_argument("--local", action="store_true")
     args = parser.parse_args()
 
-    data, path = load()
+    p = Path("pyproject.toml")
+    with open(p, "rb") as f:
+        data = tomli.load(f)
 
-    # Remove any old tool.uv section completely
-    data.pop("tool", None)
+    project = data.setdefault("project", {})
 
-    deps = data.setdefault("project", {}).setdefault("dependencies", [])
-    bem = data.setdefault("project", {}).setdefault("optional-dependencies", {}).setdefault("bem", [])
+    base = [
+        "treeparse",
+        "statesman",
+        "pydantic",
+        "pyyaml",
+        "tomli>=2.3.0",
+        "tomli-w>=1.2.0",
+    ]
+
+    root = Path.cwd().parent.resolve()
 
     if args.git:
-        print("🌐 Setting git URLs (standalone mode)...")
-        git_map = {
-            "b3-geo": "b3-geo @ git+https://github.com/wr1/b3_geo.git@dev1",
-            "b3_msh": "b3_msh @ git+https://github.com/wr1/b3_msh.git@mul3d1",
-            "b3_drp": "b3_drp @ git+https://github.com/wr1/b3_drp.git@dev1",
-            "b3-2d": "b3-2d @ git+https://github.com/wr1/b3_2d.git@dev3",
-            "b3_mat": "b3_mat @ git+https://github.com/wr1/b3_mat.git@dev1",
-            "cgfoil": "cgfoil @ git+https://github.com/wr1/cgfoil.git@dev1",
-        }
-        for i, line in enumerate(deps[:]):
-            for pkg, url in git_map.items():
-                if pkg in line:
-                    deps[i] = url
-                    break
-        bem[:] = [x for x in bem if "b3_bem" not in x] + ["b3_bem @ git+https://github.com/wr1/b3_bem.git@dev1"]
+        print("🌐 Setting git URLs (default/committed state)...")
+        b3 = [
+            "b3-geo @ git+https://github.com/wr1/b3_geo.git@dev1",
+            "b3_msh @ git+https://github.com/wr1/b3_msh.git@mul3d1",
+            "b3_drp @ git+https://github.com/wr1/b3_drp.git@dev1",
+            "b3-2d @ git+https://github.com/wr1/b3_2d.git@dev3",
+            "b3_mat @ git+https://github.com/wr1/b3_mat.git@dev1",
+            "cgfoil @ git+https://github.com/wr1/cgfoil.git@dev1",
+        ]
+        bem_line = "b3_bem @ git+https://github.com/wr1/b3_bem.git@dev1"
     else:
-        print("🔧 Setting local editable mode...")
-        local_map = {
-            "b3-geo": "b3-geo @ ../b3_geo",
-            "b3_msh": "b3_msh @ ../b3_msh",
-            "b3_drp": "b3_drp @ ../b3_drp",
-            "b3-2d": "b3-2d @ ../b3_2d",
-            "b3_mat": "b3_mat @ ../b3_mat",
-            "cgfoil": "cgfoil @ ../cgfoil",
-        }
-        for i, line in enumerate(deps[:]):
-            for pkg, path in local_map.items():
-                if pkg in line:
-                    deps[i] = path
-                    break
-        bem[:] = [x for x in bem if "b3_bem" not in x] + ["b3_bem @ ../b3_bem"]
+        print("🔧 Setting local editable mode (absolute file://)...")
+        b3 = [
+            f"b3-geo @ file://{root / 'b3_geo'}",
+            f"b3_msh @ file://{root / 'b3_msh'}",
+            f"b3_drp @ file://{root / 'b3_drp'}",
+            f"b3-2d @ file://{root / 'b3_2d'}",
+            f"b3_mat @ file://{root / 'b3_mat'}",
+            f"cgfoil @ file://{root / 'cgfoil'}",
+        ]
+        bem_line = f"b3_bem @ file://{root / 'b3_bem'}"
+
+    project["dependencies"] = base + b3
+    project.setdefault("optional-dependencies", {})["bem"] = ["ccblade", bem_line]
+
+    # Force build-system + hatchling flag (this fixes the metadata error)
+    data["build-system"] = {"requires": ["hatchling"], "build-backend": "hatchling.build"}
+    data.setdefault("tool", {}).setdefault("hatch", {}).setdefault("metadata", {})["allow-direct-references"] = True
+
+    # Remove any old tool.uv section
+    data.pop("tool", None) if "uv" in data.get("tool", {}) else None
 
     Path("uv.lock").unlink(missing_ok=True)
-    save(data, path)
-    print("✅ pyproject.toml updated")
+
+    with open(p, "wb") as f:
+        tomli_w.dump(data, f)
+
+    print("✅ pyproject.toml rebuilt with allow-direct-references = true")
     print("Run: uv sync")
 
 if __name__ == "__main__":
