@@ -26,7 +26,7 @@ def process_airfoils(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Processing airfoils...")
@@ -43,7 +43,7 @@ def process_loft(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Processing loft...")
@@ -60,7 +60,7 @@ def process_mesh(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Generating mesh...")
@@ -77,7 +77,7 @@ def assign_plies(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Assigning plies...")
@@ -94,11 +94,11 @@ def process_2d_meshing(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Processing 2D meshing...")
-    from b3_2d.state import B32dStep
+    from b3_2d.state.b3_2d_mesh import B32dStep
 
     b3_2d_step = B32dStep(config)
     b3_2d_step.run(force=force)
@@ -111,11 +111,11 @@ def process_anba(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Processing ANBA...")
-    from b3_2d.state import B32dAnbaStep
+    from b3_2d.state.b3_2d_anba import B32dAnbaStep
 
     b3_2d_anba_step = B32dAnbaStep(config)
     b3_2d_anba_step.run(force=force)
@@ -128,7 +128,7 @@ def plot_anba(config: str, force: bool = False) -> None:
             config_data = yaml.safe_load(f)
         config_dir = Path(config).parent
         workdir = config_dir / config_data["workdir"]
-        state_file = workdir / ".statesman_state.yaml"
+        state_file = workdir / ".b3_state_state.yaml"
         if state_file.exists():
             state_file.unlink()
     logger.info("Plotting ANBA results...")
